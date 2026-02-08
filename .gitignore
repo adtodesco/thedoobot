@@ -1,0 +1,41 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.pytest_cache/
+.coverage
+*.log
+
+# Virtual environments
+.venv
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment variables
+.env
+.env.local
+*.key
+*.pem
+
+# OAuth credentials (sensitive!)
+credentials.json
+token.json
+
+# GCP
+.gcloudignore
+service-account-*.json
+
+# OS
+.DS_Store
+Thumbs.db

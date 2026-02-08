@@ -1,0 +1,433 @@
+Delivered-To: adtodesco@gmail.com
+Received: by 2002:a17:907:1c1a:b0:b87:f958:68b6 with SMTP id nc26csp1670941ejc;
+        Mon, 26 Jan 2026 13:16:26 -0800 (PST)
+X-Received: by 2002:a05:620a:d85:b0:8b1:290f:657d with SMTP id af79cd13be357-8c6f9649283mr705695585a.74.1769462186294;
+        Mon, 26 Jan 2026 13:16:26 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1769462186; cv=none;
+        d=google.com; s=arc-20240605;
+        b=N38R0PExaO1lU4cmqOxr65PiR3AbMGp41ldfMMS6b4wx0OrSVvj8FFCba17nxByBIA
+         8+iiFodMfCTQuIGa++jSi4NjVePYQa5yb1IhSOoXfFpNiSPVsbp7HQKdan5c1zBgAmXO
+         CW6Zg4A90BG6YZRYrwxPIYhScnPyYKLefiMJTI7andWUUF5fC8mv5WF/WrBubF1va7Oo
+         b2fDG4FW/5qhJTIeDuyU4lbHtS4I//pq5FQiR5hpC0q1+AHDQfQsy4KUfscTmrBvAN8D
+         YiFgKfJDKhsIbcYJJtVktQeC5kKRXNdc6k8GLn+5vNgvuyQ+ejK4HXSXTb+bK+74ocic
+         nrWA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=mime-version:subject:message-id:to:from:date:dkim-signature
+         :dkim-filter;
+        bh=CFAlrNr4sCU/jPC+ntdnWeDSbCnXHxQCU9pSkf1miSk=;
+        fh=bOpe4abT21VPqIX5hG13Hx064DHN8OpI7eY2P0zupJs=;
+        b=bgbpk9oKytszU8APizPOSqZ2wXRFIVRsXZa7cwn4JhFgKnNsQoihU66/aZ5/XU2Wfh
+         bh+FUnqLbDjdvd1bWzwOrOW069jp89/44mPktgizffEKfKeOAW/+N9h9R5SZ4HIiqFf/
+         MgbGf3L7EMHuXuEt2b/+bDc8JX+vWt46UP+klvJga0VWZCTomRh8bZ15n6SH//qnoXKq
+         tAI5kxYxvDMAm+kiyMBxsrdJ52h8x2+iQk7XNOjCyG63lAeC+XXcpu2r3jYqkd+D/dmB
+         dCTnu+Hck7k5owPVQOzbslm9fcsYL5D7qs8HMZ7mQQG2ak/WPxBBDODHkRpHaZNwV7NU
+         7qmQ==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@fantrax.com header.s=newmailout header.b=0nZyEaX1;
+       spf=pass (google.com: domain of administrator@fantrax.com designates 38.132.48.249 as permitted sender) smtp.mailfrom=administrator@fantrax.com;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=fantrax.com
+Return-Path: <administrator@fantrax.com>
+Received: from mailout2.fantrax.com (mailout2.fantrax.com. [38.132.48.249])
+        by mx.google.com with ESMTPS id af79cd13be357-8c6e37cb776si1046263985a.9.2026.01.26.13.16.25
+        for <adtodesco@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 26 Jan 2026 13:16:26 -0800 (PST)
+Received-SPF: pass (google.com: domain of administrator@fantrax.com designates 38.132.48.249 as permitted sender) client-ip=38.132.48.249;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@fantrax.com header.s=newmailout header.b=0nZyEaX1;
+       spf=pass (google.com: domain of administrator@fantrax.com designates 38.132.48.249 as permitted sender) smtp.mailfrom=administrator@fantrax.com;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=fantrax.com
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.fantrax.com 8EA3D7A016D
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=fantrax.com;
+	s=newmailout; t=1769462185;
+	bh=EL6bbOvKCfE5MmslfaUWhDq9gKgwgCZ0IWdMMWqpis4=;
+	h=Date:From:To:Subject:From;
+	b=0nZyEaX1dM9ZNvd4zU9Dg6Qf2RItufe/Sa4lZeZmpJNH6mdVlfHgzLOnS2UJBoQ1a
+	 iF5j/8ZXI9VHQBcF6vI2oTkaczjySlGi2jyACB8uQeYesxyb8N9wznbs/f3Or5hzGZ
+	 TIqJUQVxjC/wSW2fxXEM4pDkXH0Etixqt1+BEyvaXsNsszbPIyvzipgg03T7Glybjj
+	 R0ZSGbUJVr9GiwDZmW4Gujy1ndY0zOqXAZTn2ealjMQiSjKH9BQMtAEnapNMBhg9vN
+	 vExX2Xb9Zd7paZeJIOcw69YONQYyKeMKUFswoNggKQyuHxe09hDXNG87GlnFjZ5eXy
+	 GhAdfhvIwNf5satLdifQY1NzfHnd7y5lD4owWsBLKe3vXzbABFb3rATKMrfx1G2bJR
+	 qx069R7i1KVm21+b6iebvPWkGhPKA5pMtzIqsPn27aRgKOndIOdx1j3eYzUhECWlwK
+	 3F0iTk6rscV/JYjsj05lV9/ZQhKDsqfhzKjzojBPzeZHlk5wCp/E2ebOYoTVRm013J
+	 A68UudKW4KnMnxhTTBtvwyo2hgGjpGnjmV7bev759sI1FmqmiKmHX1+s0mSc4pIw90
+	 HqeIvhui8GwHu+I22PQaORk691jlpvKjInOMRv4c7qEEIGH0Mm7+DQOReUOjJ1Q5GP
+	 NHSb9Vb9cOqZvIutFIJDoJzI=
+Received: from app14.tor.fantrax.com (haproxy-3.tor.fantrax.com [10.1.110.41])
+	by mailout2.fantrax.com (Postfix) with ESMTP id 8EA3D7A016D
+	for <adtodesco@gmail.com>; Mon, 26 Jan 2026 16:16:25 -0500 (EST)
+Received: from app14.tor.fantrax.com (localhost [127.0.0.1])
+	by app14.tor.fantrax.com (Postfix) with ESMTP id 7FBBC6715C
+	for <adtodesco@gmail.com>; Mon, 26 Jan 2026 16:16:25 -0500 (EST)
+Date: Mon, 26 Jan 2026 16:16:25 -0500 (EST)
+From: Fantrax <administrator@fantrax.com>
+To: adtodesco@gmail.com
+Message-ID: <fxemmidarvlg2bpzxib8xsxnqgbqrfpb@tznvy.pbz75715671616170dimmexf>
+Subject: =?UTF-8?Q?=E2=9A=BE_Trade_executed?=
+MIME-Version: 1.0
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_2730_1550806414.1769462185520"
+
+------=_Part_2730_1550806414.1769462185520
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<!doctype html> <html xmlns=3D"http://www.w3.org/1999/xhtml" xmlns:v=3D"urn=
+:schemas-microsoft-com:vml" xmlns:o=3D"urn:schemas-microsoft-com:office:off=
+ice" style=3D"color-scheme: light dark; supported-color-schemes: light dark=
+;">  <head>   <title>Discount Light</title>   <!--[if !mso]><!-->   <meta h=
+ttp-equiv=3D"X-UA-Compatible" content=3D"IE=3Dedge">   <!--<![endif]-->   <=
+meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3DUTF-8">   =
+<meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D1"=
+>   <style type=3D"text/css">     #outlook a {       padding: 0;     }     =
+ body {       margin: 0;       padding: 0;       -webkit-text-size-adjust: =
+100%;       -ms-text-size-adjust: 100%;     }      table,     td {       bo=
+rder-collapse: collapse;       mso-table-lspace: 0pt;       mso-table-rspac=
+e: 0pt;     }      img {       border: 0;       height: auto;       line-he=
+ight: 100%;       outline: none;       text-decoration: none;       -ms-int=
+erpolation-mode: bicubic;     }      p {       display: block;       margin=
+: 13px 0;     }    </style>   <!--[if mso]>     <noscript>     <xml>     <o=
+:OfficeDocumentSettings>       <o:AllowPNG/>       <o:PixelsPerInch>96</o:P=
+ixelsPerInch>     </o:OfficeDocumentSettings>     </xml>     </noscript>   =
+  <![endif]-->   <!--[if lte mso 11]>     <style type=3D"text/css">       .=
+mj-outlook-group-fix { width:100% !important; }     </style>     <![endif]-=
+->   <style type=3D"text/css">     @media only screen and (min-width:480px)=
+ {       .mj-column-per-100 {         width: 100% !important;         max-w=
+idth: 100%;       }        .mj-column-per-50 {         width: 50% !importan=
+t;         max-width: 50%;       }     }    </style>   <style media=3D"scre=
+en and (min-width:480px)">     .moz-text-html .mj-column-per-100 {       wi=
+dth: 100% !important;       max-width: 100%;     }      .moz-text-html .mj-=
+column-per-50 {       width: 50% !important;       max-width: 50%;     }   =
+ </style>   <style type=3D"text/css">   </style>   <style type=3D"text/css"=
+>     @media (prefers-color-scheme: dark) {       .darkmode-text div {     =
+    color: #FFFFFF !important;       }        .body-section>table {        =
+ background-color: #333 !important;       }     }    </style>   <style medi=
+a=3D"screen and (max-width:480px)">     .body-section {       padding: 12px=
+ 16px 4px !important;     }    </style> </head>  <body style=3D"word-spacin=
+g:normal;">
+<div class=3D"main-wrap" style=3D"background-color: rgba(0,0,0,0.05);"><!--=
+[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" cellsp=
+acing=3D"0" class=3D"body-section-outlook" role=3D"presentation" style=3D"w=
+idth:600px;" width=3D"600" ><tr><td style=3D"line-height:0px;font-size:0px;=
+mso-line-height-rule:exactly;"><![endif]-->
+<div class=3D"body-section" style=3D"padding: 20px 16px 4px; margin: 0px au=
+to; border-radius: 20px; max-width: 600px;">
+<table style=3D"box-shadow: 0px 20px 34px -18px rgba(0, 0, 0, 0.24); backgr=
+ound-color: white; width: 100%; border-radius: 20px;" border=3D"0" cellspac=
+ing=3D"0" cellpadding=3D"0" align=3D"center" bgcolor=3D"white">
+<tbody>
+<tr>
+<td style=3D"direction: ltr; font-size: 0px; padding: 0; text-align: center=
+;"><!--[if mso | IE]><table role=3D"presentation" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0"><tr><td class=3D"body-hero-outlook" width=3D"600px=
+" ><table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0"=
+ role=3D"presentation" style=3D"width:600px;" width=3D"600" ><tr><td style=
+=3D"line-height:0;font-size:0;mso-line-height-rule:exactly;"><v:image style=
+=3D"border:0;height:150px;mso-position-horizontal:center;position:absolute;=
+top:0;width:900px;z-index:-3;" src=3D"https://fantraximg.com/assets/images/=
+headers/2023/fantrax-email-header--all.webp" xmlns:v=3D"urn:schemas-microso=
+ft-com:vml" /><![endif]-->
+<div class=3D"body-hero" style=3D"margin: 0 auto; max-width: 600px;">
+<table style=3D"box-shadow: 0px 20px 34px -18px rgba(0, 0, 0, 0.24); border=
+-radius: 20px; width: 100%;" border=3D"0" cellspacing=3D"0" cellpadding=3D"=
+0">
+<tbody>
+<tr style=3D"vertical-align: top;">
+<td style=3D"width: 0.01%; padding-bottom: 17%; mso-padding-bottom-alt: 0;"=
+>&nbsp;</td>
+<td style=3D"background: #5289c8 url('https://fantraximg.com/assets/images/=
+headers/2023/fantrax-email-header--all.webp') no-repeat center center / cov=
+er; background-position: center center; background-repeat: no-repeat; borde=
+r-radius: 20px; padding: 0; vertical-align: top;"><!--[if mso | IE]><table =
+border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"width:600px;" wid=
+th=3D"600" ><tr><td style=3D""><![endif]-->
+<div class=3D"mj-hero-content" style=3D"margin: 0px auto;">
+<table style=3D"width: 100%; margin: 0px;" border=3D"0" cellspacing=3D"0" c=
+ellpadding=3D"0">
+<tbody>
+<tr>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--></td>
+<td style=3D"width: 0.01%; padding-bottom: 17%; mso-padding-bottom-alt: 0;"=
+>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td></tr></table><![endif]--></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--> <!-- <mj-section></mj-sect=
+ion> --> <!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" class=3D"body-section-outlook" role=3D"presentatio=
+n" style=3D"width:600px;" width=3D"600" ><tr><td style=3D"line-height:0px;f=
+ont-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+<div class=3D"body-section" style=3D"padding: 20px 16px 4px; margin: 0px au=
+to; border-radius: 20px; max-width: 600px;">
+<table style=3D"box-shadow: 0px 20px 34px -18px rgba(0, 0, 0, 0.24); backgr=
+ound-color: white; width: 100%; border-radius: 20px;" border=3D"0" cellspac=
+ing=3D"0" cellpadding=3D"0" align=3D"center" bgcolor=3D"white">
+<tbody>
+<tr>
+<td style=3D"direction: ltr; font-size: 0px; padding: 0; text-align: center=
+;"><!--[if mso | IE]><table role=3D"presentation" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0"><tr><td class=3D"wrapping-sectoin-outlook" width=
+=3D"600px" ><table align=3D"center" border=3D"0" cellpadding=3D"0" cellspac=
+ing=3D"0" class=3D"wrapping-sectoin-outlook" role=3D"presentation" style=3D=
+"width:600px;" width=3D"600" ><tr><td style=3D"line-height:0px;font-size:0p=
+x;mso-line-height-rule:exactly;"><![endif]-->
+<div class=3D"wrapping-sectoin" style=3D"margin: 0px auto; max-width: 600px=
+;">
+<table style=3D"width: 100%;" border=3D"0" cellspacing=3D"0" cellpadding=3D=
+"0" align=3D"center">
+<tbody>
+<tr>
+<td style=3D"direction: ltr; font-size: 0px; padding: 12px; text-align: cen=
+ter;"><!--[if mso | IE]><table role=3D"presentation" border=3D"0" cellpaddi=
+ng=3D"0" cellspacing=3D"0"><tr><td class=3D"" style=3D"vertical-align:top;w=
+idth:576px;" ><![endif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix" style=3D"font-size: 0=
+px; text-align: left; direction: ltr; display: inline-block; vertical-align=
+: top; width: 100%;">
+<table style=3D"vertical-align: top; width: 100%;" border=3D"0" cellspacing=
+=3D"0" cellpadding=3D"0">
+<tbody>
+<tr>
+<td class=3D"darkmode-text" style=3D"font-size: 0px; padding: 10px; word-br=
+eak: break-word;" align=3D"left">
+<div style=3D"font-family: sans-serif; font-size: 15px; font-weight: 400; l=
+ine-height: 1.5; text-align: left; color: #000000;">MLB - <b>The Don Orsill=
+o Open</b> - The following trade in your MLB league named "The Don Orsillo =
+Open" has been executed. You can <a href=3D"https://www.fantrax.com/fantasy=
+/league/z03ha7kumhwsxnte/transactions/history;view=3DTRADE">click here</a> =
+to go to the Transaction History page to view details of the trade.<br/><br=
+/><b>Rangoon City Crabbers</b> trades away<br/><b>2026</b> Draft Pick, Roun=
+d <b>5</b> Pick <b>3</b><br/>Pete Fairbanks<br/><br/><b>GriMets</b> trades =
+away<br/><b>2026</b> Draft Pick, Round <b>3</b> Pick <b>10</b><br/><br/><br=
+/>Note that you can adjust your email and other notification preferences in=
+ the <a href=3D"https://www.fantrax.com/fantasy/league/z03ha7kumhwsxnte/set=
+tings/notifications">Notification Settings</a> screen.<br/><br/>Thanks,<br/=
+>The Administrator</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td></tr></table><![endif]--></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--> <!-- <mj-section></mj-sect=
+ion> -->
+<table class=3D"body-section" style=3D"padding: 20px 16px 4px; background: =
+transparent; background-color: transparent; width: 100%; border-radius: 20p=
+x;" border=3D"0" cellspacing=3D"0" cellpadding=3D"0" align=3D"center" bgcol=
+or=3D"transparent">
+<tbody>
+<tr>
+<td><!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0=
+" cellspacing=3D"0" class=3D"body-section-outlook" role=3D"presentation" st=
+yle=3D"width:600px;" width=3D"600" bgcolor=3D"transparent" ><tr><td style=
+=3D"line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-=
+->
+<div style=3D"margin: 0px auto; border-radius: 20px; max-width: 600px;">
+<table style=3D"width: 100%; border-radius: 20px;" border=3D"0" cellspacing=
+=3D"0" cellpadding=3D"0" align=3D"center">
+<tbody>
+<tr>
+<td style=3D"direction: ltr; font-size: 0px; padding: 0; text-align: center=
+;"><!--[if mso | IE]><table role=3D"presentation" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0"><tr><td class=3D"wrapping-sectoin-outlook" width=
+=3D"600px" ><table align=3D"center" border=3D"0" cellpadding=3D"0" cellspac=
+ing=3D"0" class=3D"wrapping-sectoin-outlook" role=3D"presentation" style=3D=
+"width:600px;" width=3D"600" ><tr><td style=3D"line-height:0px;font-size:0p=
+x;mso-line-height-rule:exactly;"><![endif]-->
+<div class=3D"wrapping-sectoin" style=3D"margin: 0px auto; max-width: 600px=
+;">
+<table style=3D"width: 100%;" border=3D"0" cellspacing=3D"0" cellpadding=3D=
+"0" align=3D"center">
+<tbody>
+<tr>
+<td style=3D"direction: ltr; font-size: 0px; padding: 12px; padding-top: 0;=
+ text-align: center;"><!--[if mso | IE]><table role=3D"presentation" border=
+=3D"0" cellpadding=3D"0" cellspacing=3D"0"><tr><td class=3D"" style=3D"vert=
+ical-align:top;width:576px;" ><![endif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix" style=3D"font-size: 0=
+px; text-align: left; direction: ltr; display: inline-block; vertical-align=
+: top; width: 100%;">
+<table style=3D"width: 100%;" border=3D"0" cellspacing=3D"0" cellpadding=3D=
+"0">
+<tbody>
+<tr>
+<td style=3D"vertical-align: top; padding: 0;">
+<table style=3D"width: 100%;" border=3D"0" cellspacing=3D"0" cellpadding=3D=
+"0">
+<tbody>
+<tr>
+<td style=3D"font-size: 0px; padding: 0; word-break: break-word;" align=3D"=
+center"><!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" role=3D"presentation" ><tr><td><![endif]-->
+<table style=3D"float: none; display: inline-table;" border=3D"0" cellspaci=
+ng=3D"0" cellpadding=3D"0" align=3D"center">
+<tbody>
+<tr>
+<td style=3D"padding: 10px; vertical-align: middle;">
+<table style=3D"background: #84898e; border-radius: 50px; width: 30px;" bor=
+der=3D"0" cellspacing=3D"0" cellpadding=3D"0">
+<tbody>
+<tr>
+<td style=3D"padding: 2px; font-size: 0; height: 30px; vertical-align: midd=
+le; width: 30px;"><a href=3D"https://twitter.com/intent/tweet?url=3Dhttps:/=
+/twitter.com/Fantrax" target=3D"_blank"> <img style=3D"border-radius: 50px;=
+ display: block;" src=3D"https://fantraximg.com/assets/images/logos/social/=
+twitter.png" alt=3D"" width=3D"30" height=3D"30" /> </a></td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<!--[if mso | IE]></td><td><![endif]-->
+<table style=3D"float: none; display: inline-table;" border=3D"0" cellspaci=
+ng=3D"0" cellpadding=3D"0" align=3D"center">
+<tbody>
+<tr>
+<td style=3D"padding: 10px; vertical-align: middle;">
+<table style=3D"background: #84898e; border-radius: 50px; width: 30px;" bor=
+der=3D"0" cellspacing=3D"0" cellpadding=3D"0">
+<tbody>
+<tr>
+<td style=3D"padding: 2px; font-size: 0; height: 30px; vertical-align: midd=
+le; width: 30px;"><a href=3D"https://www.instagram.com/fantraxsports/" targ=
+et=3D"_blank"> <img style=3D"border-radius: 50px; display: block;" src=3D"h=
+ttps://fantraximg.com/assets/images/logos/social/instagram.png" alt=3D"" wi=
+dth=3D"30" height=3D"30" /> </a></td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<!--[if mso | IE]></td><td><![endif]-->
+<table style=3D"float: none; display: inline-table;" border=3D"0" cellspaci=
+ng=3D"0" cellpadding=3D"0" align=3D"center">
+<tbody>
+<tr>
+<td style=3D"padding: 10px; vertical-align: middle;">
+<table style=3D"background: #84898e; border-radius: 50px; width: 30px;" bor=
+der=3D"0" cellspacing=3D"0" cellpadding=3D"0">
+<tbody>
+<tr>
+<td style=3D"padding: 2px; font-size: 0; height: 30px; vertical-align: midd=
+le; width: 30px;"><a href=3D"https://www.facebook.com/sharer/sharer.php?u=
+=3Dhttps://www.facebook.com/FantraxHQ" target=3D"_blank"> <img style=3D"bor=
+der-radius: 50px; display: block;" src=3D"https://fantraximg.com/assets/ima=
+ges/logos/social/facebook.png" alt=3D"" width=3D"30" height=3D"30" /> </a><=
+/td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<!--[if mso | IE]></td></tr></table><![endif]--></td>
+</tr>
+<tr>
+<td class=3D"darkmode-text" style=3D"font-size: 0px; padding: 10px; word-br=
+eak: break-word;" align=3D"center">
+<div style=3D"font-family: sans-serif; font-size: 11px; font-weight: 400; l=
+ine-height: 16px; text-align: center; color: #445566;">You are receiving th=
+is email advertisement because you registered with Fantrax and agreed to re=
+ceive emails from us regarding new features, events and special offers.</di=
+v>
+</td>
+</tr>
+<tr>
+<td class=3D"darkmode-text" style=3D"font-size: 0px; padding: 10px; word-br=
+eak: break-word;" align=3D"center">
+<div style=3D"font-family: sans-serif; font-size: 11px; font-weight: 400; l=
+ine-height: 18px; text-align: center; color: #445566;">&copy; Trimerax LLC.=
+ dba Fantrax 2008-2026. All Rights Reserved. <br /><span>200 Continental Dr=
+ive Suite 401, Newark DE 19713</span></div>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td><td class=3D"" style=3D"width:288px;" ><![endif]-->
+<div class=3D"mj-column-per-50 mj-outlook-group-fix" style=3D"font-size: 0;=
+ line-height: 0; text-align: left; display: inline-block; width: 100%; dire=
+ction: ltr;"><!--[if mso | IE]><table border=3D"0" cellpadding=3D"0" cellsp=
+acing=3D"0" role=3D"presentation" ><tr><td style=3D"vertical-align:top;widt=
+h:288px;" ><![endif]-->
+<div class=3D"mj-column-per-100 mj-outlook-group-fix" style=3D"font-size: 0=
+px; text-align: left; direction: ltr; display: inline-block; vertical-align=
+: top; width: 100%;">
+<table style=3D"width: 100%;" border=3D"0" cellspacing=3D"0" cellpadding=3D=
+"0">
+<tbody>
+<tr>
+<td style=3D"vertical-align: top; padding-right: 0;">
+<table style=3D"width: 100%;" border=3D"0" cellspacing=3D"0" cellpadding=3D=
+"0">
+<tbody>
+<tr>
+<td class=3D"darkmode-text" style=3D"font-size: 0px; padding: 10px; word-br=
+eak: break-word;" align=3D"center">
+<div style=3D"font-family: sans-serif; font-size: 11px; font-weight: bold; =
+line-height: 16px; text-align: center; color: #445566;"><a class=3D"footer-=
+link" style=3D"color: #666970; padding-right: 10px;" href=3D"http://www.fan=
+trax.com/contact">Contact</a> <a class=3D"footer-link" style=3D"color: #666=
+970; padding-right: 10px;" href=3D"http://www.fantrax.com/privacy-policy">P=
+rivacy</a> <a class=3D"footer-link" style=3D"color: #666970; padding-right:=
+ 10px;" href=3D"http://www.fantrax.com/terms-of-service">Terms</a> <a class=
+=3D"footer-link" style=3D"color: #666970; padding-right: 0;" href=3D"https:=
+//www.fantrax.com/newui/optOutEmail.go?code=3D6fVS15sEc4Aa1ajsahrKAqUSwY6y%=
+2FOnSXxrsyz%2Bs6EdhjRZC9w9XfA">Unsubscribe</a></div>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--></div>
+<!--[if mso | IE]></td></tr></table><![endif]--></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></td></tr></table><![endif]--></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]--></td>
+</tr>
+</tbody>
+</table>
+</div>
+</body>  </html>
+------=_Part_2730_1550806414.1769462185520--
