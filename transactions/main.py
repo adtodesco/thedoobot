@@ -49,12 +49,13 @@ def main(request):
 
             result = process_email(message_data, GMAIL_CREDENTIALS_JSON, GCP_PROJECT_ID)
             return (json.dumps({"status": "ok", "result": result}), 200)
-        except NotImplementedError as e:
-            print(f"Email processing not implemented: {e}")
-            return (json.dumps({"status": "not_implemented", "error": str(e)}), 501)
         except Exception as e:
+            # Return 200 so Pub/Sub acknowledges the message and stops retrying.
+            # Errors are logged for debugging.
             print(f"Email processing failed: {e}")
-            return (json.dumps({"error": str(e)}), 500)
+            import traceback
+            traceback.print_exc()
+            return (json.dumps({"status": "error", "error": str(e)}), 200)
 
     # Unknown request type
     return (json.dumps({"error": "Invalid request format"}), 400)

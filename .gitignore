@@ -31,6 +31,7 @@ ENV/
 # OAuth credentials (sensitive!)
 credentials.json
 token.json
+client_secrets.json
 
 # GCP
 .gcloudignore

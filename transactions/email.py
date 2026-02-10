@@ -133,7 +133,18 @@ def _parse_trade(html: str) -> dict | None:
     if not content_div:
         return None
 
-    full_text = content_div.get_text(separator="\n").strip()
+    # Replace <br> tags with actual newlines before extracting text
+    for br in content_div.find_all("br"):
+        br.replace_with("\n")
+
+    # Extract text without adding separators between tags
+    full_text = content_div.get_text(separator="")
+
+    # Normalize whitespace: collapse multiple spaces on each line
+    lines = full_text.split("\n")
+    lines = [re.sub(r" +", " ", line.strip()) for line in lines]
+    full_text = "\n".join(line for line in lines if line)  # Remove empty lines
+
     match = re.search(
         r"has been executed\.\s*(.*?)Note that you can adjust",
         full_text,
@@ -144,7 +155,7 @@ def _parse_trade(html: str) -> dict | None:
 
     details = match.group(1).strip()
     # Clean up "click here" links
-    details = re.sub(r"You can\s+click here\s+to go to.*?\n", "", details).strip()
+    details = re.sub(r"You can click here to go to.*?\n", "", details).strip()
     return {"details": details}
 
 
@@ -175,13 +186,18 @@ def _parse_drop(text: str) -> dict | None:
 
 def _parse_draft(text: str) -> dict | None:
     """Parse draft pick email text"""
-    end_of_header = f'your MLB league "{LEAGUE_NAME}":'
-    start_idx = text.find(end_of_header)
-    if start_idx != -1:
-        end_match = re.search(r"[Cc]lick here", text[start_idx:])
-        if end_match:
-            details = text[start_idx + len(end_of_header):start_idx + end_match.start()].strip()
-            return {"details": details}
+    match = re.search(
+        r"Round\s+(\d+)\s*,\s*Pick\s+(\d+)\s*:\s*(.+?)\s+was picked by the team\s+(.+?)\s*\.",
+        text,
+        re.DOTALL,
+    )
+    if match:
+        return {
+            "round": re.sub(r"\s+", " ", match.group(1).strip()),
+            "pick": re.sub(r"\s+", " ", match.group(2).strip()),
+            "player": re.sub(r"\s+", " ", match.group(3).strip()),
+            "team": re.sub(r"\s+", " ", match.group(4).strip()),
+        }
     return {"raw": text}
 
 
@@ -207,7 +223,7 @@ def _format_discord_message(transaction_type: str, data: dict) -> str:
         DROP: f"A player has been dropped in {LEAGUE_NAME}!",
         TRADE: f"A trade has been executed in {LEAGUE_NAME}!",
         BLOCK: f"A trade block has been updated in {LEAGUE_NAME}!",
-        DRAFT: f"A player has been drafted in {LEAGUE_NAME}!",
+        DRAFT: f"Draft pick made in {LEAGUE_NAME}!",
     }
     title = titles.get(transaction_type, "A transaction occurred!")
 
@@ -227,11 +243,14 @@ def _format_discord_message(transaction_type: str, data: dict) -> str:
         else:
             details = data.get("raw", "")
     elif transaction_type == DRAFT and data:
-        details = data.get("details", data.get("raw", ""))
+        if "player" in data:
+            details = f"**{data['team']}** drafted **{data['player']}**\nRound {data['round']}, Pick {data['pick']}"
+        else:
+            details = data.get("raw", "")
     else:
         details = ""
 
-    return f"{emoji} **{title}**\n\n{details}"
+    return f"{emoji} **{title}**\n\n{details}\n"
 
 
 def _post_to_discord(webhook_url: str, message: str) -> None:
@@ -240,9 +259,81 @@ def _post_to_discord(webhook_url: str, message: str) -> None:
     response.raise_for_status()
 
 
+def _get_label_id(service, label_name: str) -> str | None:
+    """Get Gmail label ID by name"""
+    labels = service.users().labels().list(userId="me").execute()
+    return next(
+        (l["id"] for l in labels.get("labels", []) if l["name"] == label_name),
+        None,
+    )
+
+
+def _process_single_message(service, msg_id: str, discord_transactions_url: str, discord_trade_block_url: str) -> dict | None:
+    """Fetch, parse, and post a single Gmail message. Returns result dict or None if skipped."""
+    message = (
+        service.users()
+        .messages()
+        .get(userId="me", id=msg_id, format="full")
+        .execute()
+    )
+
+    # Extract subject from headers
+    headers = message.get("payload", {}).get("headers", [])
+    subject = next(
+        (h["value"] for h in headers if h["name"].lower() == "subject"),
+        "",
+    )
+    print(f"Processing email: {subject}")
+
+    transaction_type = _detect_transaction_type(subject)
+    if transaction_type == UNKNOWN:
+        print(f"Skipping unknown transaction type: {subject}")
+        return None
+
+    html_body = _extract_html_body(message)
+    if not html_body:
+        print(f"No HTML body found for message {msg_id}")
+        return None
+
+    # Parse based on type
+    if transaction_type == BLOCK:
+        text = _extract_text_content(html_body)
+        data = _parse_trade_block(text)
+    elif transaction_type == TRADE:
+        data = _parse_trade(html_body)
+    elif transaction_type == CLAIM:
+        text = _extract_text_content(html_body)
+        data = _parse_claim(text)
+    elif transaction_type == DROP:
+        text = _extract_text_content(html_body)
+        data = _parse_drop(text)
+    elif transaction_type == DRAFT:
+        text = _extract_text_content(html_body)
+        data = _parse_draft(text)
+    else:
+        data = None
+
+    discord_message = _format_discord_message(transaction_type, data)
+
+    # Route to correct webhook
+    webhook_url = discord_trade_block_url if transaction_type == BLOCK else discord_transactions_url
+
+    if webhook_url:
+        _post_to_discord(webhook_url, discord_message)
+        print(f"Posted {transaction_type} to Discord")
+        return {"message_id": msg_id, "type": transaction_type}
+    else:
+        print(f"No webhook URL configured for type: {transaction_type}")
+        return None
+
+
 def process_email(message_data: dict, gmail_credentials_json: str, gcp_project_id: str) -> dict:
     """
     Process a Pub/Sub message containing a Gmail notification.
+
+    Instead of using historyId (which misses batched notifications), we fetch
+    all inbox (unarchived) messages with the DOO Transaction label and process
+    each one, archiving them afterward.
 
     Args:
         message_data: The Pub/Sub message data (decoded) — contains emailAddress and historyId
@@ -255,104 +346,58 @@ def process_email(message_data: dict, gmail_credentials_json: str, gcp_project_i
     discord_transactions_url = os.environ.get("DISCORD_TRANSACTIONS_WEBHOOK_URL")
     discord_trade_block_url = os.environ.get("DISCORD_TRADE_BLOCK_WEBHOOK_URL")
 
-    history_id = message_data.get("historyId")
-    if not history_id:
-        print(f"No historyId in message: {message_data}")
-        return {"status": "skipped", "reason": "no historyId"}
-
-    print(f"Processing Gmail notification with historyId: {history_id}")
+    print(f"Processing Gmail notification: {message_data}")
 
     service = _get_gmail_service(gmail_credentials_json)
 
-    # history().list(startHistoryId=X) returns records *newer than* X, so subtract
-    # 1 to ensure we capture the event at X itself.
-    start_id = str(int(history_id) - 1)
+    # Find the DOO Transaction label ID
+    label_id = _get_label_id(service, "DOO Transaction")
+    if not label_id:
+        print("DOO Transaction label not found")
+        return {"status": "error", "reason": "DOO Transaction label not found"}
 
-    # Fetch history to find new messages since the notification
+    # Fetch all inbox (unarchived) messages with the DOO Transaction label
     try:
-        history_response = (
+        list_response = (
             service.users()
-            .history()
-            .list(
-                userId="me",
-                startHistoryId=start_id,
-                historyTypes=["messageAdded"],
-            )
+            .messages()
+            .list(userId="me", labelIds=[label_id, "INBOX"], maxResults=50)
             .execute()
         )
     except Exception as e:
-        print(f"Failed to fetch Gmail history: {e}")
+        print(f"Failed to list Gmail messages: {e}")
         return {"status": "error", "reason": str(e)}
 
-    history_items = history_response.get("history", [])
-    if not history_items:
-        print("No new messages in history")
-        return {"status": "skipped", "reason": "no new messages"}
+    messages = list_response.get("messages", [])
+    if not messages:
+        print("No unarchived DOO Transaction messages")
+        return {"status": "skipped", "reason": "no unarchived messages"}
+
+    print(f"Found {len(messages)} unarchived DOO Transaction message(s)")
 
     processed = []
-    for item in history_items:
-        for msg_added in item.get("messagesAdded", []):
-            msg_id = msg_added["message"]["id"]
+    for msg_stub in messages:
+        msg_id = msg_stub["id"]
+        try:
+            result = _process_single_message(service, msg_id, discord_transactions_url, discord_trade_block_url)
+            if result:
+                processed.append(result)
+            # Always archive so we don't reprocess on next notification
+            service.users().messages().modify(
+                userId="me",
+                id=msg_id,
+                body={"removeLabelIds": ["INBOX"]},
+            ).execute()
+        except Exception as e:
+            print(f"Failed to process message {msg_id}: {e}")
+            # Still archive to avoid infinite retry on broken emails
             try:
-                message = (
-                    service.users()
-                    .messages()
-                    .get(userId="me", id=msg_id, format="full")
-                    .execute()
-                )
-
-                # Extract subject from headers
-                headers = message.get("payload", {}).get("headers", [])
-                subject = next(
-                    (h["value"] for h in headers if h["name"].lower() == "subject"),
-                    "",
-                )
-                print(f"Processing email: {subject}")
-
-                transaction_type = _detect_transaction_type(subject)
-                if transaction_type == UNKNOWN:
-                    print(f"Skipping unknown transaction type: {subject}")
-                    continue
-
-                html_body = _extract_html_body(message)
-                if not html_body:
-                    print(f"No HTML body found for message {msg_id}")
-                    continue
-
-                # Parse based on type
-                if transaction_type == BLOCK:
-                    text = _extract_text_content(html_body)
-                    data = _parse_trade_block(text)
-                elif transaction_type == TRADE:
-                    data = _parse_trade(html_body)
-                elif transaction_type == CLAIM:
-                    text = _extract_text_content(html_body)
-                    data = _parse_claim(text)
-                elif transaction_type == DROP:
-                    text = _extract_text_content(html_body)
-                    data = _parse_drop(text)
-                elif transaction_type == DRAFT:
-                    text = _extract_text_content(html_body)
-                    data = _parse_draft(text)
-                else:
-                    data = None
-
-                discord_message = _format_discord_message(transaction_type, data)
-
-                # Route to correct webhook
-                if transaction_type == BLOCK:
-                    webhook_url = discord_trade_block_url
-                else:
-                    webhook_url = discord_transactions_url
-
-                if webhook_url:
-                    _post_to_discord(webhook_url, discord_message)
-                    print(f"Posted {transaction_type} to Discord")
-                    processed.append({"message_id": msg_id, "type": transaction_type})
-                else:
-                    print(f"No webhook URL configured for type: {transaction_type}")
-
-            except Exception as e:
-                print(f"Failed to process message {msg_id}: {e}")
+                service.users().messages().modify(
+                    userId="me",
+                    id=msg_id,
+                    body={"removeLabelIds": ["INBOX"]},
+                ).execute()
+            except Exception:
+                pass
 
     return {"status": "ok", "processed": processed}

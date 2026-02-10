@@ -13,7 +13,10 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 # Scopes needed for Gmail API
 # gmail.readonly - Read emails (required for push notifications)
 # gmail.modify - Modify labels (optional, if you want to mark emails as read)
-SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
+SCOPES = [
+    "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/gmail.modify",
+]
 
 
 def main():
@@ -32,7 +35,7 @@ def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(script_dir)
     token_path = os.path.join(project_root, "token.json")
-    credentials_path = os.path.join(project_root, "credentials.json")
+    credentials_path = os.path.join(project_root, "client_secrets.json")
 
     # If you've run this before and have a token.json, we can load it
     if os.path.exists(token_path):
