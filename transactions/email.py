@@ -143,7 +143,19 @@ def _parse_trade(html: str) -> dict | None:
     # Normalize whitespace: collapse multiple spaces on each line
     lines = full_text.split("\n")
     lines = [re.sub(r" +", " ", line.strip()) for line in lines]
-    full_text = "\n".join(line for line in lines if line)  # Remove empty lines
+
+    # Collapse consecutive empty lines into one, but keep single blank lines
+    result = []
+    prev_empty = False
+    for line in lines:
+        if not line:
+            if not prev_empty:
+                result.append(line)
+            prev_empty = True
+        else:
+            result.append(line)
+            prev_empty = False
+    full_text = "\n".join(result)
 
     match = re.search(
         r"has been executed\.\s*(.*?)Note that you can adjust",
@@ -238,7 +250,7 @@ def _format_discord_message(transaction_type: str, data: dict) -> str:
             details = data.get("raw", "")
     elif transaction_type == DROP and data:
         if "players" in data:
-            players_list = "\n".join(f"  • {p}" for p in data["players"])
+            players_list = "\n".join(data["players"])
             details = f"Players dropped to waivers:\n{players_list}"
         else:
             details = data.get("raw", "")
@@ -250,7 +262,7 @@ def _format_discord_message(transaction_type: str, data: dict) -> str:
     else:
         details = ""
 
-    return f"{emoji} **{title}**\n\n{details}\n"
+    return f"{emoji} **{title}**\n\n{details}\n\n"
 
 
 def _post_to_discord(webhook_url: str, message: str) -> None:
