@@ -123,7 +123,7 @@ if gcloud scheduler jobs describe dingers-schedule --location $REGION &>/dev/nul
     echo "   Updating dingers-schedule..."
     gcloud scheduler jobs update http dingers-schedule \
       --location $REGION \
-      --schedule "*/5 * * * *" \
+      --schedule "* * * * *" \
       --uri "$DINGER_URL" \
       --http-method GET \
       --oidc-service-account-email scheduler-invoker@${PROJECT_ID}.iam.gserviceaccount.com \
@@ -132,13 +132,13 @@ else
     echo "   Creating dingers-schedule..."
     gcloud scheduler jobs create http dingers-schedule \
       --location $REGION \
-      --schedule "*/5 * * * *" \
+      --schedule "* * * * *" \
       --uri "$DINGER_URL" \
       --http-method GET \
       --oidc-service-account-email scheduler-invoker@${PROJECT_ID}.iam.gserviceaccount.com \
       --quiet
 fi
-echo "   ✅ Dingers scheduler: every 5 minutes"
+echo "   ✅ Dingers scheduler: every minute"
 
 # Transactions function renewal scheduler (every 24 hours at 2 AM UTC)
 if gcloud scheduler jobs describe transactions-watch-renewal-schedule --location $REGION &>/dev/null; then
@@ -243,7 +243,7 @@ echo "   Dingers:  $DINGER_URL"
 echo "   Transactions:  $TRANSACTIONS_URL"
 echo ""
 echo "⏰ Schedules:"
-echo "   Dingers:  Every 5 minutes"
+echo "   Dingers:  Every minute"
 echo "   Transactions Watch Renewal: Daily at 2 AM UTC"
 echo ""
 echo "📝 Next steps:"

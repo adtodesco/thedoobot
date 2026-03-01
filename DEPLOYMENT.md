@@ -76,6 +76,10 @@ gcloud projects add-iam-policy-binding $(gcloud config get-value project) \
 gcloud projects add-iam-policy-binding $(gcloud config get-value project) \
   --member=serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com \
   --role=roles/logging.logWriter
+
+gcloud projects add-iam-policy-binding $(gcloud config get-value project) \
+  --member=serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com \
+  --role=roles/datastore.user
 ```
 
 **What these roles do:**
@@ -84,6 +88,7 @@ gcloud projects add-iam-policy-binding $(gcloud config get-value project) \
 - `storage.objectAdmin` - Manage Cloud Storage objects used during build
 - `secretmanager.secretAccessor` - Read secrets to inject into functions
 - `logging.logWriter` - Write build logs to Cloud Logging
+- `datastore.user` - Read/write Firestore data (used by dingers for deduplication)
 
 **Note:** Cloud Functions Gen 2 uses the Compute Engine default service account (`{PROJECT_NUMBER}-compute@developer.gserviceaccount.com`) for building and deploying functions, not the Cloud Build service account.
 

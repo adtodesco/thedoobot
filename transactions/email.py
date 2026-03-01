@@ -172,14 +172,38 @@ def _parse_trade(html: str) -> dict | None:
 
 
 def _parse_claim(text: str) -> dict | None:
-    """Parse claim email text"""
-    match = re.search(r"\*(.+?)\*\s*\n\s*([\w\s\-']+)\s+([A-Z]+)\s*-\s*([\w,]+.*)", text)
-    if match:
-        return {
-            "team": match.group(1).strip(),
-            "player": f"{match.group(2).strip()} {match.group(3).strip()}",
-            "details": match.group(4).strip(),
-        }
+    """Parse claim email text.
+
+    Extracts team name and player(s) from between the header
+    (ending after date/commissioner line) and "For more details".
+    Supports multiple teams/players in a single claim email.
+    """
+    match = re.search(
+        r"were claimed.*?:\s*(.*?)\s*For more details",
+        text,
+        re.DOTALL,
+    )
+    if not match:
+        return {"raw": text}
+
+    body = match.group(1).strip()
+    # Split into lines, strip whitespace, remove empties
+    lines = [line.strip() for line in body.split("\n") if line.strip()]
+
+    # Lines alternate: team name, then player(s) for that team
+    # Team names don't contain " - " (position separator), player lines do
+    claims = []
+    current_team = None
+    for line in lines:
+        if re.search(r"\s+[A-Z]{2,3}\s*-\s*\w", line):
+            # This is a player line (e.g. "Yoshinobu Yamamoto LAD - P")
+            if current_team:
+                claims.append({"team": current_team, "player": line})
+        else:
+            current_team = line
+
+    if claims:
+        return {"claims": claims}
     return {"raw": text}
 
 
@@ -244,8 +268,10 @@ def _format_discord_message(transaction_type: str, data: dict) -> str:
     elif transaction_type == TRADE and data:
         details = data.get("details", "")
     elif transaction_type == CLAIM and data:
-        if "player" in data:
-            details = f"**{data.get('team', '')}** claimed {data['player']}"
+        if "claims" in data:
+            details = "\n".join(
+                f"**{c['team']}** claimed {c['player']}" for c in data["claims"]
+            )
         else:
             details = data.get("raw", "")
     elif transaction_type == DROP and data:

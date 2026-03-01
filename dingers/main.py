@@ -33,36 +33,41 @@ def get_firestore_client():
     return firestore.Client(database=FIRESTORE_DATABASE)
 
 
-def _video_doc_id(video_url: str) -> str:
-    """Create stable doc ID from video URL."""
-    return hashlib.sha256(video_url.encode("utf-8")).hexdigest()
+def _highlight_doc_id(highlight: Dict) -> str:
+    """Create stable doc ID from game_id + cleaned title.
+
+    Video URLs change as MLB re-encodes highlights, so we use
+    the game ID and title (with timestamp stripped) instead.
+    """
+    title = re.sub(r"\s*\(\d{2}:\d{2}:\d{2}\)\s*$", "", highlight["title"]).strip()
+    key = f"{highlight['game_id']}:{title}"
+    return hashlib.sha256(key.encode("utf-8")).hexdigest()
 
 
-def has_posted_video(client, date_str: str, video_url: str) -> bool:
-    """Check if a video URL was already posted for the given date."""
+def has_posted_highlight(client, date_str: str, highlight: Dict) -> bool:
+    """Check if a highlight was already posted for the given date."""
     doc_ref = (
         client.collection(FIRESTORE_COLLECTION)
         .document(date_str)
         .collection("videos")
-        .document(_video_doc_id(video_url))
+        .document(_highlight_doc_id(highlight))
     )
     return doc_ref.get().exists
 
 
-def mark_video_posted(client, date_str: str, highlight: Dict) -> None:
-    """Mark a video URL as posted with TTL for cleanup."""
+def mark_highlight_posted(client, date_str: str, highlight: Dict) -> None:
+    """Mark a highlight as posted with TTL for cleanup."""
     expires_at = datetime.now(timezone.utc) + timedelta(days=2)
-    video_url = highlight["video_url"]
 
     doc_ref = (
         client.collection(FIRESTORE_COLLECTION)
         .document(date_str)
         .collection("videos")
-        .document(_video_doc_id(video_url))
+        .document(_highlight_doc_id(highlight))
     )
     doc_ref.set(
         {
-            "video_url": video_url,
+            "video_url": highlight["video_url"],
             "title": highlight.get("title"),
             "description": highlight.get("description"),
             "posted_at": firestore.SERVER_TIMESTAMP,
@@ -126,24 +131,34 @@ def extract_hr_highlights(game_id: int) -> List[Dict]:
                 continue
 
             # Split each highlight by newline to get title, description, video_url
+            # Some highlights have 3 parts (title, description, url)
+            # Others have only 2 parts (title, url)
             parts = highlight.split("\n")
-            if len(parts) < 3:
-                print(f"Warning: Invalid highlight format: {highlight}")
+            if len(parts) >= 3:
+                title = parts[0]
+                description = parts[1]
+                video_url = parts[2]
+            elif len(parts) == 2:
+                title = parts[0]
+                description = ""
+                video_url = parts[1]
+            else:
                 continue
-
-            title = parts[0]
-            description = parts[1]
-            video_url = parts[2]
 
             # Check if it's a home run highlight
             title_lower = title.lower()
             description_lower = description.lower()
-            if (
-                "homer" in title_lower
-                or "home run" in title_lower
-                or "homer" in description_lower
-                or "home run" in description_lower
-            ):
+            combined = f"{title_lower} {description_lower}"
+            is_hr = (
+                "homer" in combined
+                or "home run" in combined
+                or "grand slam" in combined
+            )
+
+            # Skip Statcast data visualizations (not actual HR videos)
+            is_data_clip = "darkroom-clips.mlb.com" in video_url
+
+            if is_hr and not is_data_clip:
                 highlights.append(
                     {
                         "title": title,
@@ -229,15 +244,12 @@ def main(_request):
         highlights = extract_hr_highlights(game_id)
 
         for highlight in highlights:
-            # Create unique ID for this highlight using video_url
-            video_url = highlight["video_url"]
-
-            if has_posted_video(firestore_client, date_str, video_url):
+            if has_posted_highlight(firestore_client, date_str, highlight):
                 continue
 
             try:
                 post_to_discord(highlight)
-                mark_video_posted(firestore_client, date_str, highlight)
+                mark_highlight_posted(firestore_client, date_str, highlight)
             except Exception as e:
                 print(f"Error posting to Discord: {e}")
 
